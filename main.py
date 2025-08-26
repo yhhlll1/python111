@@ -18,7 +18,7 @@ RESULTS_DIR = Path("/root/projects/python111/results")  # Путь для сер
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 TELEGRAM_BOT_TOKEN = "8482437272:AAHszW2Vc2LDHoHSfndZNJ5Fg6KzLK9L6SM"
 TELEGRAM_CHAT_IDS = ["1029265651", "205681497"]  # Список chat_id для отправки
-CSV_INTERVAL_SECONDS = 20 # 24 часа
+CSV_INTERVAL_SECONDS = 86400 # 24 часа
 
 # Словарь для маппинга картинок на значения кубиков
 DICE_MAP = {
