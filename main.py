@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from contextlib import suppress
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+from telegram import Bot
 
 # Настройка логирования для отладки
 logging.basicConfig(level=logging.DEBUG)
@@ -15,6 +16,9 @@ logging.basicConfig(level=logging.DEBUG)
 # --- Константы/настройки ---
 RESULTS_DIR = Path("/root/projects/python111/results")  # Путь для сервера
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+TELEGRAM_BOT_TOKEN = "8482437272:AAHszW2Vc2LDHoHSfndZNJ5Fg6KzLK9L6SM"
+TELEGRAM_CHAT_ID = "YOUR_CHAT_ID"  # Замените на ваш chat_id
+CSV_INTERVAL_SECONDS = 120  # 2 минуты
 
 # Словарь для маппинга картинок на значения кубиков
 DICE_MAP = {
@@ -52,6 +56,16 @@ def create_csv_file():
     f.flush()
     os.fsync(f.fileno())
     return f, writer, filename
+
+async def send_csv_to_telegram(filename):
+    """Отправка CSV-файла в Telegram"""
+    try:
+        bot = Bot(token=TELEGRAM_BOT_TOKEN)
+        with open(filename, 'rb') as f:
+            await bot.send_document(chat_id=TELEGRAM_CHAT_ID, document=f, caption="Dice Results CSV")
+        logging.info(f"CSV-файл {filename} отправлен в Telegram")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке CSV в Telegram: {e}")
 
 def save_results_csv(fh, writer, d1, d2, analysis):
     """Запись строки в CSV (с немедленным сохранением на диск)"""
@@ -151,6 +165,8 @@ async def parse_dice(page):
 
 async def main():
     f = None
+    writer = None
+    filename = None
     browser = None
     context = None
     try:
@@ -177,9 +193,28 @@ async def main():
 
             f, writer, filename = create_csv_file()
             logging.info(f"Запись идёт в файл: {filename}")
+            last_csv_time = time.time()
 
             last_combo = None
             while True:
+                # Проверка времени для создания нового CSV
+                current_time = time.time()
+                if current_time - last_csv_time >= CSV_INTERVAL_SECONDS:
+                    if f is not None and not f.closed:
+                        # Отправляем предыдущий CSV в Telegram
+                        await send_csv_to_telegram(filename)
+                        # Закрываем текущий CSV
+                        with suppress(Exception):
+                            f.flush()
+                            os.fsync(f.fileno())
+                        with suppress(Exception):
+                            f.close()
+                        logging.info(f"Предыдущий CSV-файл {filename} закрыт")
+                    # Создаём новый CSV
+                    f, writer, filename = create_csv_file()
+                    logging.info(f"Создан новый CSV-файл: {filename}")
+                    last_csv_time = current_time
+
                 d1, d2 = await parse_dice(page)
                 if d1 is not None and d2 is not None:
                     combo = (d1, d2)
@@ -197,6 +232,8 @@ async def main():
         logging.error(f"\nНеожиданная ошибка: {e}")
     finally:
         if f is not None and not f.closed:
+            # Отправляем последний CSV перед завершением
+            await send_csv_to_telegram(filename)
             with suppress(Exception):
                 f.flush()
                 os.fsync(f.fileno())
