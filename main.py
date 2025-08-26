@@ -8,6 +8,13 @@ from pathlib import Path
 from contextlib import suppress
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True, args=['--no-sandbox'])  # Укажите headless=True и --no-sandbox
+    context = browser.new_context()
+    page = context.new_page()
+    # Ваш код парсинга
+    browser.close()
+
 # --- Константы/настройки ---
 RESULTS_DIR = Path(r"C:\Users\User\Desktop\Результаты")  # сохраняем сюда
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
