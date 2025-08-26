@@ -17,8 +17,8 @@ logging.basicConfig(level=logging.DEBUG)
 RESULTS_DIR = Path("/root/projects/python111/results")  # Путь для сервера
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 TELEGRAM_BOT_TOKEN = "8482437272:AAHszW2Vc2LDHoHSfndZNJ5Fg6KzLK9L6SM"
-TELEGRAM_CHAT_ID = "YOUR_CHAT_ID"  # Замените на ваш chat_id
-CSV_INTERVAL_SECONDS = 86400  # 24 часа
+TELEGRAM_CHAT_IDS = ["1029265651", "205681497"]  # Список chat_id для отправки
+CSV_INTERVAL_SECONDS = 20 # 24 часа
 
 # Словарь для маппинга картинок на значения кубиков
 DICE_MAP = {
@@ -58,12 +58,13 @@ def create_csv_file():
     return f, writer, filename
 
 async def send_csv_to_telegram(filename):
-    """Отправка CSV-файла в Telegram"""
+    """Отправка CSV-файла в Telegram на все chat_id"""
     try:
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        with open(filename, 'rb') as f:
-            await bot.send_document(chat_id=TELEGRAM_CHAT_ID, document=f, caption="Dice Results CSV")
-        logging.info(f"CSV-файл {filename} отправлен в Telegram")
+        for chat_id in TELEGRAM_CHAT_IDS:
+            with open(filename, 'rb') as f:
+                await bot.send_document(chat_id=chat_id, document=f, caption="Dice Results CSV")
+            logging.info(f"CSV-файл {filename} отправлен в Telegram на chat_id {chat_id}")
     except Exception as e:
         logging.error(f"Ошибка при отправке CSV в Telegram: {e}")
 
