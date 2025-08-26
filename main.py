@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 RESULTS_DIR = Path("/root/projects/python111/results")  # Путь для сервера
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 TELEGRAM_BOT_TOKEN = "8482437272:AAHszW2Vc2LDHoHSfndZNJ5Fg6KzLK9L6SM"
-TELEGRAM_CHAT_ID = "YOUR_CHAT_ID"  # Замените на ваш chat_id
+TELEGRAM_CHAT_ID = "1029265651"  # Замените на ваш chat_id
 CSV_INTERVAL_SECONDS = 120  # 2 минуты
 
 # Словарь для маппинга картинок на значения кубиков
